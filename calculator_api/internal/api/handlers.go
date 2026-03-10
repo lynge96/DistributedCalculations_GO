@@ -13,15 +13,23 @@ type CalculatorService interface {
 	Calculate(string) (models.CalculationResult, error)
 }
 
+type Publisher interface {
+	Publish(message models.CalculationResult) error
+}
+
 // Handleren gemmer en reference til den service den skal bruge
 // Ækvivalent til dependency injection i C#
 type Handler struct {
-	service CalculatorService
+	service   CalculatorService
+	publisher Publisher
 }
 
 // Laver ny handler og injicerer servicen og returnerer pointer til den
-func NewHandler(service CalculatorService) *Handler {
-	return &Handler{service: service}
+func NewHandler(service CalculatorService, publisher Publisher) *Handler {
+	return &Handler{
+		service:   service,
+		publisher: publisher,
+	}
 }
 
 type CalculationRequest struct {
@@ -39,6 +47,11 @@ func (h *Handler) Calculate(w http.ResponseWriter, r *http.Request) {
 	result, err := h.service.Calculate(request.Expression)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := h.publisher.Publish(result); err != nil {
+		http.Error(w, "failed to publish calculation result", http.StatusInternalServerError)
 		return
 	}
 

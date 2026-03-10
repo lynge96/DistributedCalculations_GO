@@ -1,6 +1,7 @@
 package main
 
 import (
+	"calculator_api/internal/messaging/rabbitmq"
 	"log"
 	"net/http"
 
@@ -12,7 +13,13 @@ func main() {
 
 	parser := &calculator.GovaluateParser{}
 	service := calculator.NewService(parser)
-	handler := api.NewHandler(service)
+
+	publisher, err := rabbitmq.NewPublisher("amqp://guest:guest@raspberrypi:5672/", "calculations")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	handler := api.NewHandler(service, publisher)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/calculations", handler.Calculate)
