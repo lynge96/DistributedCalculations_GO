@@ -1,24 +1,28 @@
 ﻿package calculator
 
 import (
-	"calculator_api/pkg/models"
+	"calculator_api/internal/models"
 	"log"
 	"time"
 
 	"github.com/google/uuid"
 )
 
-type Service struct {
-	logger log.Logger
+type MathParser interface {
+	Evaluate(string) (float64, error)
 }
 
-func NewService() *Service {
-	return &Service{}
+type Service struct {
+	parser MathParser
+}
+
+func NewService(parser MathParser) *Service {
+	return &Service{parser: parser}
 }
 
 func (s *Service) Calculate(expression string) (models.CalculationResult, error) {
 
-	result, err := Evaluate(expression)
+	result, err := s.parser.Evaluate(expression)
 	if err != nil {
 		return models.CalculationResult{}, err
 	}
