@@ -22,7 +22,7 @@ func main() {
 	handler := api.NewHandler(service, publisher)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/api/calculations", handler.Calculate)
+	mux.HandleFunc("POST /api/calculations", handler.Calculate)
 	log.Println("Server running on :8080")
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }

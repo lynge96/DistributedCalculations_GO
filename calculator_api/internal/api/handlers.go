@@ -40,29 +40,28 @@ func (h *Handler) Calculate(w http.ResponseWriter, r *http.Request) {
 
 	request, err := decodeCalculationRequest(r)
 	if err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
+		respond(w, http.StatusBadRequest, models.CalculationResult{Error: "invalid request"})
 		return
 	}
 
 	result, err := h.service.Calculate(request.Expression)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		respond(w, http.StatusBadRequest, models.CalculationResult{Error: err.Error()})
 		return
 	}
 
 	if err := h.publisher.Publish(result); err != nil {
-		http.Error(w, "failed to publish calculation result", http.StatusInternalServerError)
+		respond(w, http.StatusInternalServerError, models.CalculationResult{Error: err.Error()})
 		return
 	}
 
-	if err := writeJSON(w, result); err != nil {
-		http.Error(w, "failed to write response", http.StatusInternalServerError)
-		return
-	}
+	respond(w, http.StatusOK, result)
 }
 
 func decodeCalculationRequest(r *http.Request) (CalculationRequest, error) {
+
 	var request CalculationRequest
+
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		return CalculationRequest{}, err
@@ -70,7 +69,11 @@ func decodeCalculationRequest(r *http.Request) (CalculationRequest, error) {
 	return request, nil
 }
 
-func writeJSON(w http.ResponseWriter, value any) error {
+func respond(w http.ResponseWriter, status int, body any) {
 	w.Header().Set("Content-Type", "application/json")
-	return json.NewEncoder(w).Encode(value)
+	w.WriteHeader(status)
+	err := json.NewEncoder(w).Encode(body)
+	if err != nil {
+		return
+	}
 }

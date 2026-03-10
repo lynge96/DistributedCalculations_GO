@@ -3,7 +3,7 @@ POST http://localhost:8080/api/calculations
 Content-Type: application/json
 
 {
-  "expression": "45*3"
+  "expression": "3**2*PI"
 }
 
 ###
