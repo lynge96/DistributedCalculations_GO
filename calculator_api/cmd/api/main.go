@@ -15,7 +15,7 @@ func main() {
 	handler := api.NewHandler(service)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/api/calculate", handler.Calculate)
+	mux.HandleFunc("/api/calculations", handler.Calculate)
 	log.Println("Server running on :8080")
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }
