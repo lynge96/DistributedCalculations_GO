@@ -3,9 +3,6 @@
 import (
 	"log"
 	"shared/models"
-	"time"
-
-	"github.com/google/uuid"
 )
 
 type MathParser interface {
@@ -32,15 +29,10 @@ func (s *Service) Calculate(expression string) (models.CalculationResult, error)
 
 	result, err := s.parser.Evaluate(expression)
 	if err != nil {
-		return models.CalculationResult{}, err
+		return models.NewCalculationError(expression, err), nil
 	}
 
-	calculationResult := models.CalculationResult{
-		ID:         uuid.New(),
-		Expression: expression,
-		Result:     result,
-		Timestamp:  time.Now(),
-	}
+	calculationResult := models.NewCalculationResult(expression, result)
 
 	if err := s.publisher.Publish(calculationResult); err != nil {
 		log.Printf("failed to publish result: %v", err)

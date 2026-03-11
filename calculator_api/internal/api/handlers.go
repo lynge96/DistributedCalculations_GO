@@ -25,15 +25,16 @@ func NewHandler(service CalculatorService) *Handler {
 	return &Handler{service: service}
 }
 
-type CalculationRequest struct {
-	Expression string `json:"expression"`
-}
-
 func (h *Handler) Calculate(w http.ResponseWriter, r *http.Request) {
 
 	request, err := decodeCalculationRequest(r)
 	if err != nil {
 		helpers.Respond(w, http.StatusBadRequest, models.CalculationResult{Error: "invalid request"})
+		return
+	}
+
+	if err := request.Validate(); err != nil {
+		helpers.Respond(w, http.StatusBadRequest, models.NewCalculationError(request.Expression, err))
 		return
 	}
 
@@ -46,13 +47,13 @@ func (h *Handler) Calculate(w http.ResponseWriter, r *http.Request) {
 	helpers.Respond(w, http.StatusOK, result)
 }
 
-func decodeCalculationRequest(r *http.Request) (CalculationRequest, error) {
+func decodeCalculationRequest(r *http.Request) (models.CalculationRequest, error) {
 
-	var request CalculationRequest
+	var request models.CalculationRequest
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		return CalculationRequest{}, err
+		return models.CalculationRequest{}, err
 	}
 	return request, nil
 }

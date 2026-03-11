@@ -17,6 +17,7 @@ type Consumer struct {
 }
 
 func NewConsumer(store HistoryStore, connString string, queue string) (*Consumer, error) {
+
 	conn, err := rabbitmq.NewConnection(connString, queue)
 	if err != nil {
 		return nil, err
