@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"shared/models"
-
-	amqp "github.com/rabbitmq/amqp091-go"
+	"shared/rabbitmq"
 )
 
 type HistoryStore interface {
@@ -13,50 +12,22 @@ type HistoryStore interface {
 }
 
 type Consumer struct {
-	store   HistoryStore
-	conn    *amqp.Connection
-	channel *amqp.Channel
-	queue   string
+	store HistoryStore
+	conn  *rabbitmq.Connection
 }
 
 func NewConsumer(store HistoryStore, connString string, queue string) (*Consumer, error) {
-
-	conn, err := amqp.Dial(connString)
+	conn, err := rabbitmq.NewConnection(connString, queue)
 	if err != nil {
 		return nil, err
 	}
-
-	ch, err := conn.Channel()
-	if err != nil {
-		_ = conn.Close()
-		return nil, err
-	}
-
-	q, err := ch.QueueDeclare(
-		queue,
-		true,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("Queue declared: %s", q.Name)
-
-	return &Consumer{
-		store:   store,
-		conn:    conn,
-		channel: ch,
-		queue:   q.Name,
-	}, nil
+	return &Consumer{store: store, conn: conn}, nil
 }
 
 func (c *Consumer) Start() error {
 
-	msgs, err := c.channel.Consume(
-		c.queue,
+	msgs, err := c.conn.Channel.Consume(
+		c.conn.Queue,
 		"",
 		true,
 		false,
@@ -67,7 +38,7 @@ func (c *Consumer) Start() error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Consumer started, waiting for messages on queue: %s", c.queue)
+	log.Printf("Consumer started, waiting for messages on queue: %s", c.conn.Queue)
 
 	for msg := range msgs {
 		var result models.CalculationResult
