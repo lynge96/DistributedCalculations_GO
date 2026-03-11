@@ -26,7 +26,7 @@ func (h *Handler) History(w http.ResponseWriter, r *http.Request) {
 	helpers.Respond(w, http.StatusOK, entries)
 }
 
-// DELETE /history/clear  (eller POST, dit valg)
+// DELETE /history/clear
 func (h *Handler) Clear(w http.ResponseWriter, r *http.Request) {
 
 	h.store.Clear()

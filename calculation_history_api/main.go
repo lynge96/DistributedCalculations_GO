@@ -21,7 +21,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	go consumer.Start()
+	go func() {
+		if err := consumer.Start(); err != nil {
+			log.Fatalf("Consumer error: %v", err)
+		}
+	}()
 
 	log.Println("Server running on :8081")
 	log.Fatal(http.ListenAndServe(":8081", router))
