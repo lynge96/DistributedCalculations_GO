@@ -6,20 +6,24 @@ import (
 	"history/internal/storage"
 	"log"
 	"net/http"
+	"shared/configuration"
 )
 
 func main() {
 
-	historyStore := storage.NewHistoryStore(5)
+	connString := configuration.GetEnv("RABBITMQ_URL", "amqp://guest:guest@raspberrypi:5672/")
+	queue := configuration.GetEnv("RABBITMQ_QUEUE", "calculations")
+	port := configuration.GetEnv("PORT", "8081")
+	queueSize := configuration.GetEnvInt("RABBITMQ_QUEUE_SIZE", 5)
+
+	historyStore := storage.NewHistoryStore(queueSize)
 	handler := api.NewHandler(historyStore)
 	router := api.NewRouter(handler)
-	consumer, err := rabbitmq.NewConsumer(
-		historyStore,
-		"amqp://guest:guest@raspberrypi:5672/",
-		"calculations")
+	consumer, err := rabbitmq.NewConsumer(historyStore, connString, queue)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to create consumer: %v", err)
 	}
+	defer consumer.Close()
 
 	go func() {
 		if err := consumer.Start(); err != nil {
@@ -27,6 +31,6 @@ func main() {
 		}
 	}()
 
-	log.Println("Server running on :8081")
-	log.Fatal(http.ListenAndServe(":8081", router))
+	log.Printf("Server running on port :%s", port)
+	log.Fatal(http.ListenAndServe(":"+port, router))
 }

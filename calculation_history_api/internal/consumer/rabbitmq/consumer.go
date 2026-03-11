@@ -53,3 +53,7 @@ func (c *Consumer) Start() error {
 
 	return nil
 }
+
+func (p *Consumer) Close() {
+	p.conn.Close()
+}

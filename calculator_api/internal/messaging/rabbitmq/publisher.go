@@ -44,3 +44,7 @@ func (p *Publisher) Publish(message models.CalculationResult) error {
 		},
 	)
 }
+
+func (p *Publisher) Close() {
+	p.conn.Close()
+}

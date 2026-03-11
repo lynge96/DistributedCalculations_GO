@@ -1,7 +1,9 @@
 ﻿package rabbitmq
 
 import (
+	"fmt"
 	"log"
+	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -13,9 +15,21 @@ type Connection struct {
 }
 
 func NewConnection(connString string, queue string) (*Connection, error) {
-	conn, err := amqp.Dial(connString)
+	var conn *amqp.Connection
+	var err error
+
+	maxRetries := 10
+	for i := range maxRetries {
+		conn, err = amqp.Dial(connString)
+		if err == nil {
+			break
+		}
+		log.Printf("Failed to connect to RabbitMQ, retrying in 5s... (%d/%d)", i+1, maxRetries)
+		time.Sleep(5 * time.Second)
+	}
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to connect to RabbitMQ after %d retries: %w", maxRetries, err)
 	}
 
 	ch, err := conn.Channel()
