@@ -1,9 +1,15 @@
-﻿### POST request to calculate expression
+﻿### POST request to calculate basic expression
 POST http://localhost:8080/api/calculations
 Content-Type: application/json
 
 {
-  "expression": "3**2*PI"
+  "expression": "23*34-45/3+15"
 }
 
-###
+### POST request to calculate advanced expression
+POST http://localhost:8080/api/calculations
+Content-Type: application/json
+
+{
+  "expression": "3^2*PI*SIN(35)+SQRT(65)"
+}

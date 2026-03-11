@@ -30,5 +30,5 @@ func (h *Handler) History(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Clear(w http.ResponseWriter, r *http.Request) {
 
 	h.store.Clear()
-	helpers.Respond(w, http.StatusOK, nil)
+	helpers.Respond(w, http.StatusOK, "Calculation history cleared")
 }

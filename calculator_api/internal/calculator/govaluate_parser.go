@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"strings"
 
 	"github.com/Knetic/govaluate"
 )
@@ -51,6 +52,8 @@ var functions = map[string]govaluate.ExpressionFunction{
 
 func (p *GovaluateParser) Evaluate(expression string) (float64, error) {
 
+	expression = strings.ReplaceAll(expression, "^", "**")
+
 	exp, err := govaluate.NewEvaluableExpressionWithFunctions(expression, functions)
 	if err != nil {
 		return 0, err
@@ -66,6 +69,6 @@ func (p *GovaluateParser) Evaluate(expression string) (float64, error) {
 		return 0, err
 	}
 
-	log.Printf("Result: %v", result)
+	log.Printf("Result: %+v", result)
 	return result.(float64), nil
 }

@@ -1,9 +1,9 @@
 ﻿package rabbitmq
 
 import (
-	"calculator_api/internal/models"
 	"encoding/json"
 	"log"
+	"shared/models"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )

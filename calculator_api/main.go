@@ -11,18 +11,17 @@ import (
 
 func main() {
 
-	parser := &calculator.GovaluateParser{}
-	service := calculator.NewService(parser)
-
 	publisher, err := rabbitmq.NewPublisher("amqp://guest:guest@raspberrypi:5672/", "calculations")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	handler := api.NewHandler(service, publisher)
+	parser := &calculator.GovaluateParser{}
+	service := calculator.NewService(parser, publisher)
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("POST /api/calculations", handler.Calculate)
+	handler := api.NewHandler(service)
+	router := api.NewRouter(handler)
+
 	log.Println("Server running on :8080")
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
