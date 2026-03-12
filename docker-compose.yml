@@ -23,7 +23,7 @@ services:
       context: .
       dockerfile: calculator_api/Dockerfile
     ports:
-      - "8080:8080"
+      - "8082:8080"
     environment:
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
       - RABBITMQ_QUEUE=calculations
@@ -37,7 +37,7 @@ services:
       context: .
       dockerfile: calculation_history_api/Dockerfile
     ports:
-      - "8081:8081"
+      - "8083:8081"
     environment:
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
       - RABBITMQ_QUEUE=calculations
