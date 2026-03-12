@@ -2,7 +2,7 @@
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -15,22 +15,7 @@ type Connection struct {
 }
 
 func NewConnection(connString string, queue string) (*Connection, error) {
-	var conn *amqp.Connection
-	var err error
-
-	maxRetries := 10
-	for i := range maxRetries {
-		conn, err = amqp.Dial(connString)
-		if err == nil {
-			break
-		}
-		log.Printf("Failed to connect to RabbitMQ, retrying in 5s... (%d/%d)", i+1, maxRetries)
-		time.Sleep(5 * time.Second)
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to RabbitMQ after %d retries: %w", maxRetries, err)
-	}
+	conn, err := dial(connString, 10)
 
 	ch, err := conn.Channel()
 	if err != nil {
@@ -51,13 +36,26 @@ func NewConnection(connString string, queue string) (*Connection, error) {
 		return nil, err
 	}
 
-	log.Printf("Queue declared: %s", q.Name)
+	slog.Info("queue declared:", "queue", q.Name)
 
 	return &Connection{
 		Conn:    conn,
 		Channel: ch,
 		Queue:   q.Name,
 	}, nil
+}
+
+func dial(connString string, maxRetries int) (*amqp.Connection, error) {
+	var err error
+	for i := range maxRetries {
+		conn, err := amqp.Dial(connString)
+		if err == nil {
+			return conn, nil
+		}
+		slog.Info("failed to connect to RabbitMQ, retrying in 5s...", "attempt", i+1, "maxRetries", maxRetries)
+		time.Sleep(5 * time.Second)
+	}
+	return nil, fmt.Errorf("failed to connect to RabbitMQ after %d retries: %w", maxRetries, err)
 }
 
 func (c *Connection) Close() {

@@ -2,7 +2,7 @@
 
 import (
 	"encoding/json"
-	"log"
+	"log/slog"
 	"net/http"
 )
 
@@ -10,6 +10,6 @@ func Respond(w http.ResponseWriter, status int, body any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(body); err != nil {
-		log.Printf("failed to encode response: %v", err)
+		slog.Warn("failed to encode response:", "error", err, "body", body, "status", status)
 	}
 }

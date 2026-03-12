@@ -2,7 +2,7 @@
 
 import (
 	"encoding/json"
-	"log"
+	"log/slog"
 	"shared/models"
 	"shared/rabbitmq"
 
@@ -17,6 +17,7 @@ func NewPublisher(connString string, queue string) (*Publisher, error) {
 
 	conn, err := rabbitmq.NewConnection(connString, queue)
 	if err != nil {
+		slog.Error("failed to create RabbitMQ connection:", "error", err)
 		return nil, err
 	}
 	return &Publisher{conn: conn}, nil
@@ -29,7 +30,7 @@ func (p *Publisher) Publish(message models.CalculationResult) error {
 		return err
 	}
 
-	log.Printf("Publishing message: %s", body)
+	slog.Info("publishing message:", "body", string(body))
 	return p.conn.Channel.Publish(
 		"",
 		p.conn.Queue,

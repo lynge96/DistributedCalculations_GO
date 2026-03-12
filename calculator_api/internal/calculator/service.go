@@ -1,7 +1,7 @@
 ﻿package calculator
 
 import (
-	"log"
+	"log/slog"
 	"shared/models"
 )
 
@@ -35,9 +35,9 @@ func (s *Service) Calculate(expression string) (models.CalculationResult, error)
 	calculationResult := models.NewCalculationResult(expression, result)
 
 	if err := s.publisher.Publish(calculationResult); err != nil {
-		log.Printf("failed to publish result: %v", err)
+		slog.Warn("failed to publish result, continuing", "error", err, "result", calculationResult, "expression", expression)
 	}
 
-	log.Printf("Calculation result: %v", calculationResult)
+	slog.Info("calculation completed", "expression", expression, "result", result)
 	return calculationResult, nil
 }

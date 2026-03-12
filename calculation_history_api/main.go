@@ -4,33 +4,43 @@ import (
 	"history/internal/api"
 	"history/internal/consumer/rabbitmq"
 	"history/internal/storage"
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 	"shared/configuration"
+	"shared/logger"
 )
 
 func main() {
 
+	// env vars
 	connString := configuration.GetEnv("RABBITMQ_URL", "amqp://guest:guest@raspberrypi:5672/")
 	queue := configuration.GetEnv("RABBITMQ_QUEUE", "calculations")
 	port := configuration.GetEnv("PORT", "8081")
 	queueSize := configuration.GetEnvInt("RABBITMQ_QUEUE_SIZE", 5)
 
+	// setup
+	logger.Setup()
 	historyStore := storage.NewHistoryStore(queueSize)
 	handler := api.NewHandler(historyStore)
 	router := api.NewRouter(handler)
 	consumer, err := rabbitmq.NewConsumer(historyStore, connString, queue)
 	if err != nil {
-		log.Fatalf("Failed to create consumer: %v", err)
+		slog.Error("failed to create consumer", "error", err, "queue", queue, "connString", connString)
+		os.Exit(1)
 	}
 	defer consumer.Close()
 
 	go func() {
 		if err := consumer.Start(); err != nil {
-			log.Fatalf("Consumer error: %v", err)
+			slog.Error("consumer error", "error", err)
+			os.Exit(1)
 		}
 	}()
 
-	log.Printf("Server running on port :%s", port)
-	log.Fatal(http.ListenAndServe(":"+port, router))
+	slog.Info("server running", "port", port)
+	if err := http.ListenAndServe(":"+port, router); err != nil {
+		slog.Error("server stopped unexpectedly", "error", err)
+		os.Exit(1)
+	}
 }

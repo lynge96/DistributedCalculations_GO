@@ -2,7 +2,7 @@
 
 import (
 	"encoding/json"
-	"log"
+	"log/slog"
 	"shared/models"
 	"shared/rabbitmq"
 )
@@ -20,6 +20,7 @@ func NewConsumer(store HistoryStore, connString string, queue string) (*Consumer
 
 	conn, err := rabbitmq.NewConnection(connString, queue)
 	if err != nil {
+		slog.Error("failed to create RabbitMQ connection", "error", err, "queue", queue, "connString", connString)
 		return nil, err
 	}
 	return &Consumer{store: store, conn: conn}, nil
@@ -39,17 +40,17 @@ func (c *Consumer) Start() error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Consumer started, waiting for messages on queue: %s", c.conn.Queue)
+	slog.Info("consumer started, waiting for messages on queue", "queue", c.conn.Queue)
 
 	for msg := range msgs {
 		var result models.CalculationResult
 		if err := json.Unmarshal(msg.Body, &result); err != nil {
-			log.Printf("Failed to unmarshal message: %v", err)
+			slog.Warn("failed to unmarshal message", "error", err, "body", string(msg.Body))
 			continue
 		}
 
 		c.store.Add(result)
-		log.Printf("Received and stored result: %+v", result)
+		slog.Info("received and stored result", "result", result)
 	}
 
 	return nil

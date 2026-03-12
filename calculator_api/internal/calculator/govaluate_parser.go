@@ -2,7 +2,6 @@
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"strings"
 
@@ -53,15 +52,13 @@ var functions = map[string]govaluate.ExpressionFunction{
 func (p *GovaluateParser) Evaluate(expression string) (float64, error) {
 
 	expression = strings.ReplaceAll(expression, "^", "**")
+	parameters := map[string]interface{}{
+		"PI": math.Pi,
+	}
 
 	exp, err := govaluate.NewEvaluableExpressionWithFunctions(expression, functions)
 	if err != nil {
 		return 0, err
-	}
-	log.Printf("Evaluating expression: %v", exp)
-
-	parameters := map[string]interface{}{
-		"PI": math.Pi,
 	}
 
 	result, err := exp.Evaluate(parameters)
@@ -69,6 +66,5 @@ func (p *GovaluateParser) Evaluate(expression string) (float64, error) {
 		return 0, err
 	}
 
-	log.Printf("Result: %+v", result)
 	return result.(float64), nil
 }

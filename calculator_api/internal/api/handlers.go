@@ -2,6 +2,7 @@
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"shared/helpers"
 	"shared/models"
@@ -29,18 +30,21 @@ func (h *Handler) Calculate(w http.ResponseWriter, r *http.Request) {
 
 	request, err := decodeCalculationRequest(r)
 	if err != nil {
-		helpers.Respond(w, http.StatusBadRequest, models.CalculationResult{Error: "invalid request"})
+		slog.Warn("failed to decode request", "error", err)
+		helpers.Respond(w, http.StatusBadRequest, models.NewCalculationError(request.Expression, err))
 		return
 	}
 
 	if err := request.Validate(); err != nil {
+		slog.Warn("invalid request", "error", err, "expression", request.Expression)
 		helpers.Respond(w, http.StatusBadRequest, models.NewCalculationError(request.Expression, err))
 		return
 	}
 
 	result, err := h.service.Calculate(request.Expression)
 	if err != nil {
-		helpers.Respond(w, http.StatusBadRequest, models.CalculationResult{Error: err.Error()})
+		slog.Warn("calculation failed", "error", err, "expression", request.Expression)
+		helpers.Respond(w, http.StatusBadRequest, models.NewCalculationError(request.Expression, err))
 		return
 	}
 

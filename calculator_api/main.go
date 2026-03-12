@@ -2,9 +2,11 @@ package main
 
 import (
 	"calculator_api/internal/messaging/rabbitmq"
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 	"shared/configuration"
+	"shared/logger"
 
 	"calculator_api/internal/api"
 	"calculator_api/internal/calculator"
@@ -12,13 +14,17 @@ import (
 
 func main() {
 
+	// env vars
 	connString := configuration.GetEnv("RABBITMQ_URL", "amqp://guest:guest@raspberrypi:5672/")
 	queue := configuration.GetEnv("RABBITMQ_QUEUE", "calculations")
 	port := configuration.GetEnv("PORT", "8080")
 
+	// setup
+	logger.Setup()
 	publisher, err := rabbitmq.NewPublisher(connString, queue)
 	if err != nil {
-		log.Fatalf("Failed to create publisher: %v", err)
+		slog.Error("failed to create publisher:", "error", err, "queue", queue, "connString", connString)
+		os.Exit(1)
 	}
 	defer publisher.Close()
 
@@ -28,6 +34,9 @@ func main() {
 	handler := api.NewHandler(service)
 	router := api.NewRouter(handler)
 
-	log.Printf("Server running on port :%s\n", port)
-	log.Fatal(http.ListenAndServe(":"+port, router))
+	slog.Info("server running", "port", port)
+	if err := http.ListenAndServe(":"+port, router); err != nil {
+		slog.Error("server stopped unexpectedly", "error", err)
+		os.Exit(1)
+	}
 }

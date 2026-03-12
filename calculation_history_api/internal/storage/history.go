@@ -1,7 +1,7 @@
 ﻿package storage
 
 import (
-	"log"
+	"log/slog"
 	"shared/models"
 )
 
@@ -21,19 +21,19 @@ func (s *HistoryStore) Add(entry models.CalculationResult) {
 	s.entries = append(s.entries, entry)
 
 	if len(s.entries) > s.maxSize {
-		log.Printf("History size exceeded, removing oldest entry: %+v", s.entries[0])
+		slog.Info("history size exceeded, removing oldest entry", "oldest_entry", s.entries[0])
 		s.entries = s.entries[1:]
 	}
 }
 
 func (s *HistoryStore) GetAll() []models.CalculationResult {
 
-	log.Printf("Getting %d records from history store", len(s.entries))
+	slog.Info("getting records from history store", "count", len(s.entries))
 	return s.entries
 }
 
 func (s *HistoryStore) Clear() {
 
-	log.Printf("Clearing %d records from history", len(s.entries))
+	slog.Info("clearing records from history", "count", len(s.entries))
 	s.entries = make([]models.CalculationResult, 0, s.maxSize)
 }
