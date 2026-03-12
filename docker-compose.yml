@@ -18,5 +18,34 @@ services:
       timeout: 5s
       retries: 5
 
+  calculator_api:
+    build:
+      context: .
+      dockerfile: calculator_api/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - RABBITMQ_QUEUE=calculations
+      - PORT=8080
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  calculation_history_api:
+    build:
+      context: .
+      dockerfile: calculation_history_api/Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - RABBITMQ_QUEUE=calculations
+      - PORT=8081
+      - RABBITMQ_QUEUE_SIZE=5
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
 volumes:
   rabbitmq_data:
