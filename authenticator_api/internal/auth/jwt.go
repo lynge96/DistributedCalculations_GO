@@ -3,7 +3,7 @@
 import (
 	"authenticator_api/internal/models"
 	"errors"
-	"shared/configuration"
+	"log/slog"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -11,18 +11,18 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var secretKey = []byte(configuration.GetEnv("JWT_SECRET", "default-secret-key"))
-
 type Claims struct {
 	UserID   uuid.UUID `json:"user_id"`
 	Username string    `json:"username"`
 	jwt.RegisteredClaims
 }
 
-type JwtAuth struct{}
+type JwtAuth struct {
+	secretKey []byte
+}
 
-func NewJwtAuth() *JwtAuth {
-	return &JwtAuth{}
+func NewJwtAuth(secret string) *JwtAuth {
+	return &JwtAuth{secretKey: []byte(secret)}
 }
 
 func (j *JwtAuth) ValidateUser(user models.User, password string) (string, error) {
@@ -32,7 +32,7 @@ func (j *JwtAuth) ValidateUser(user models.User, password string) (string, error
 		return "", err
 	}
 
-	token, err := generateToken(user)
+	token, err := j.generateToken(user)
 	if err != nil {
 		return "", err
 	}
@@ -40,7 +40,7 @@ func (j *JwtAuth) ValidateUser(user models.User, password string) (string, error
 	return token, nil
 }
 
-func generateToken(user models.User) (string, error) {
+func (j *JwtAuth) generateToken(user models.User) (string, error) {
 
 	claims := Claims{
 		UserID:   user.ID,
@@ -51,15 +51,17 @@ func generateToken(user models.User) (string, error) {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	return token.SignedString(secretKey)
+	slog.Info("generated JWT token for user:", "user_id", user.ID)
+	return token.SignedString(j.secretKey)
 }
 
-func ValidateToken(tokenString string) (*Claims, error) {
+func (j *JwtAuth) ValidateToken(tokenString string) (*Claims, error) {
 
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (any, error) {
-		return secretKey, nil
+		return j.secretKey, nil
 	})
 	if err != nil {
+		slog.Warn("failed to validate JWT token", "error", err)
 		return nil, err
 	}
 	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
