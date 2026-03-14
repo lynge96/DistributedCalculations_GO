@@ -34,7 +34,7 @@ func main() {
 
 	authService := service.NewService(userStore, authenticator)
 	handler := api.NewHandler(authService)
-	router := api.NewRouter(handler)
+	router := api.NewRouter(handler, jwtAuth)
 
 	slog.Info("server running", "port", port)
 	if err := http.ListenAndServe(":"+port, router); err != nil {

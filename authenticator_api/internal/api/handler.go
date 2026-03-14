@@ -79,3 +79,9 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		ExpiresIn:   int((24 * time.Hour).Seconds()),
 	})
 }
+
+func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
+
+	slog.Info("user logged out")
+	helpers.Respond(w, http.StatusOK, "logged out")
+}
