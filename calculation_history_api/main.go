@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"shared/auth"
 	"shared/configuration"
 	"shared/logger"
 )
@@ -18,12 +19,15 @@ func main() {
 	queue := configuration.GetEnv("RABBITMQ_QUEUE", "calculations")
 	port := configuration.GetEnv("PORT", "8081")
 	queueSize := configuration.GetEnvInt("RABBITMQ_QUEUE_SIZE", 5)
+	secretKey := configuration.GetEnv("JWT_SECRET", "default-secret-key")
 
 	// setup
 	logger.Setup()
 	historyStore := storage.NewHistoryStore(queueSize)
 	handler := api.NewHandler(historyStore)
-	router := api.NewRouter(handler)
+	jwtAuth := auth.NewJwtAuth(secretKey)
+	router := api.NewRouter(handler, jwtAuth)
+
 	consumer, err := rabbitmq.NewConsumer(historyStore, connString, queue)
 	if err != nil {
 		slog.Error("failed to create consumer", "error", err, "queue", queue, "connString", connString)

@@ -1,0 +1,7 @@
+﻿### GET request calculation history
+GET http://localhost:8081/api/history
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNTg2NDAzMzItMjhhNi00NTgzLWFmMWItYWI0YzcyMmIwOGMwIiwidXNlcm5hbWUiOiJhZG1pbiIsImV4cCI6MTc3MzU2OTU3OX0.cDBpPMtUA7iycSWBLNwwFH3yqRcNX5KUffu7ocGU_W4
+
+### DELETE clear calculation history
+DELETE http://localhost:8081/api/history/clear
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNTg2NDAzMzItMjhhNi00NTgzLWFmMWItYWI0YzcyMmIwOGMwIiwidXNlcm5hbWUiOiJhZG1pbiIsImV4cCI6MTc3MzU2OTU3OX0.cDBpPMtUA7iycSWBLNwwFH3yqRcNX5KUffu7ocGU_W4

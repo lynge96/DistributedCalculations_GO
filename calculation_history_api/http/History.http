@@ -1,5 +1,0 @@
-﻿### GET request calculation history
-GET http://localhost:8081/api/history
-
-### DELETE clear calculation history
-DELETE http://localhost:8081/api/history/clear
