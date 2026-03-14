@@ -1,6 +1,8 @@
 ﻿package service
 
-import "authenticator_api/internal/models"
+import (
+	"shared/models"
+)
 
 type Storage interface {
 	GetByUsername(username string) (models.User, error)

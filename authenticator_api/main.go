@@ -2,12 +2,13 @@
 
 import (
 	"authenticator_api/internal/api"
-	auth2 "authenticator_api/internal/auth"
+	"authenticator_api/internal/auth"
 	"authenticator_api/internal/service"
 	"authenticator_api/internal/storage"
 	"log/slog"
 	"net/http"
 	"os"
+	sharedAuth "shared/auth"
 	"shared/configuration"
 	"shared/logger"
 
@@ -23,14 +24,15 @@ func main() {
 
 	// setup
 	logger.Setup()
-	auth := auth2.NewJwtAuth(secretKey)
+	jwtAuth := sharedAuth.NewJwtAuth(secretKey)
+	authenticator := auth.NewAuthenticator(jwtAuth)
 	userStore, err := storage.NewUserStore(dbPath)
 	if err != nil {
 		slog.Error("failed to create user store", "error", err)
 		os.Exit(1)
 	}
-	authService := service.NewService(userStore, auth)
 
+	authService := service.NewService(userStore, authenticator)
 	handler := api.NewHandler(authService)
 	router := api.NewRouter(handler)
 

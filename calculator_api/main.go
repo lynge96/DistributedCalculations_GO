@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"shared/auth"
 	"shared/configuration"
 	"shared/logger"
 
@@ -18,6 +19,7 @@ func main() {
 	connString := configuration.GetEnv("RABBITMQ_URL", "amqp://guest:guest@raspberrypi:5672/")
 	queue := configuration.GetEnv("RABBITMQ_QUEUE", "calculations")
 	port := configuration.GetEnv("PORT", "8080")
+	secretKey := configuration.GetEnv("JWT_SECRET", "default-secret-key")
 
 	// setup
 	logger.Setup()
@@ -30,9 +32,10 @@ func main() {
 
 	parser := &calculator.GovaluateParser{}
 	service := calculator.NewService(parser, publisher)
+	jwtAuth := auth.NewJwtAuth(secretKey)
 
 	handler := api.NewHandler(service)
-	router := api.NewRouter(handler)
+	router := api.NewRouter(handler, jwtAuth)
 
 	slog.Info("server running", "port", port)
 	if err := http.ListenAndServe(":"+port, router); err != nil {

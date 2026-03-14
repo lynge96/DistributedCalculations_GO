@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"shared/helpers"
+	"time"
 )
 
 type AuthRequest struct {
@@ -13,7 +14,9 @@ type AuthRequest struct {
 }
 
 type LoginResponse struct {
-	Token string `json:"token"`
+	AccessToken string `json:"access_token"`
+	TokenType   string `json:"token_type"`
+	ExpiresIn   int    `json:"expires_in"`
 }
 
 type AuthService interface {
@@ -70,5 +73,9 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	slog.Info("user logged in", "username", request.Username)
-	helpers.Respond(w, http.StatusOK, LoginResponse{Token: token})
+	helpers.Respond(w, http.StatusOK, LoginResponse{
+		AccessToken: token,
+		TokenType:   "Bearer",
+		ExpiresIn:   int((24 * time.Hour).Seconds()),
+	})
 }

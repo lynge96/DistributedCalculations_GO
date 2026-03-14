@@ -1,10 +1,10 @@
 ﻿package storage
 
 import (
-	"authenticator_api/internal/models"
 	"database/sql"
 	"errors"
 	"log/slog"
+	"shared/models"
 )
 
 func (s *UserStore) ExistsByUsername(username string) (bool, error) {

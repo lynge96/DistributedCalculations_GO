@@ -1,9 +1,9 @@
 ﻿package service
 
 import (
-	"authenticator_api/internal/models"
 	"errors"
 	"log/slog"
+	"shared/models"
 )
 
 func (s *Service) CreateUser(username, password string) error {

@@ -1,5 +1,5 @@
 ﻿### POST create a new user
-POST http://localhost:8082/api/register
+POST {{auth_url}}/api/register
 Content-Type: application/json
 
 {
@@ -8,10 +8,14 @@ Content-Type: application/json
 }
 
 ### POST user login
-POST http://localhost:8082/api/login
+POST {{auth_url}}/api/login
 Content-Type: application/json
 
 {
   "username": "admin",
   "password": "admin"
 }
+
+> {%
+    client.global.set("token", response.body.access_token);
+%}
