@@ -1,0 +1,29 @@
+﻿### POST create a new user
+POST {{auth_url}}/api/register
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin"
+}
+
+### POST user login
+POST {{auth_url}}/api/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin"
+}
+
+> {%
+    client.global.set("token", response.body.access_token);
+%}
+
+### Logout
+POST http://localhost:8082/api/logout
+Authorization: Bearer {{token}}
+
+> {%
+    client.global.set("token", "");
+%}

@@ -1,0 +1,7 @@
+﻿### GET request calculation history
+GET {{history_url}}/api/history
+Authorization: Bearer {{token}}
+
+### DELETE clear calculation history
+DELETE {{history_url}}/api/history/clear
+Authorization: Bearer {{token}}
