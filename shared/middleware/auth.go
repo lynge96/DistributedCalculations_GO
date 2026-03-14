@@ -1,7 +1,9 @@
 ﻿package middleware
 
 import (
+	"log/slog"
 	"net/http"
+	"shared/helpers"
 	"shared/models"
 	"strings"
 )
@@ -15,7 +17,8 @@ func AuthMiddleware(validator TokenValidator, next http.Handler) http.Handler {
 
 		header := r.Header.Get("Authorization")
 		if header == "" {
-			w.WriteHeader(http.StatusUnauthorized)
+			slog.Warn("missing authorization header")
+			helpers.Respond(w, http.StatusUnauthorized, "unauthorized")
 			return
 		}
 
@@ -23,7 +26,8 @@ func AuthMiddleware(validator TokenValidator, next http.Handler) http.Handler {
 
 		_, err := validator.ValidateToken(token)
 		if err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
+			slog.Warn("invalid token", "error", err)
+			helpers.Respond(w, http.StatusUnauthorized, "unauthorized")
 			return
 		}
 
